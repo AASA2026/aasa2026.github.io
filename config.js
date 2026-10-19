@@ -5,11 +5,11 @@ window.SURVEY_CONFIG = {
 
   // 1) Firebase 專案設定（Firebase 主控台 → 專案設定 → 您的應用程式 → 複製貼上）
   firebase: {
-    apiKey: "請貼上",
-    authDomain: "請貼上",
-    databaseURL: "請貼上",
-    projectId: "請貼上",
-    appId: "請貼上"
+    apiKey: "AIzaSyA71zte7og-qVJGLL4MVQLnw2PC0_nEWGQ",
+    authDomain: "aa2026-booth.firebaseapp.com",
+    databaseURL: "https://aa2026-booth-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "aa2026-booth",
+    appId: "1:669741381631:web:229446301f0fee08e159ca"
   },
 
   // 2) 個資告知事項中的公司名稱（請確認為公司登記全名）
