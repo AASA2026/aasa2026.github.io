@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>名單管理</title>
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root { --brand:#0B4EA2; --bg:#F4F5F7; --ink:#1B1F24; --muted:#6B7280; --line:#E3E6EA; --dup:#FFF4E5; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; }
+  header { background:var(--brand); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; }
+  header b { font-size:18px; }
+  header button { background:transparent; border:1px solid rgba(255,255,255,.6); color:#fff; }
+  main { max-width:1280px; margin:0 auto; padding:16px; }
+  .card { background:#fff; border-radius:12px; padding:16px; margin-bottom:14px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  #login { max-width:360px; margin:60px auto; }
+  #login input { display:block; width:100%; padding:11px; font-size:16px; border:1px solid #ccc; border-radius:8px; margin:6px 0 12px; }
+  button { border:0; border-radius:8px; padding:9px 16px; font-size:15px; cursor:pointer; background:var(--brand); color:#fff; }
+  button.sec { background:#fff; color:var(--brand); border:1.5px solid var(--brand); }
+  .row { display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; }
+  .row > div { min-width:150px; }
+  .lbl { font-size:13px; color:var(--muted); margin-bottom:4px; }
+  select, input[type=search] { padding:8px; font-size:15px; border:1px solid #ccc; border-radius:8px; }
+  .checks label { display:inline-flex; align-items:center; gap:4px; margin:0 12px 6px 0; white-space:nowrap; }
+  .stats { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .stat { background:#fff; border-radius:10px; padding:10px 14px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .stat b { font-size:20px; display:block; }
+  .stat span { font-size:12px; color:var(--muted); }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .wrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; background:#fff; font-size:14px; }
+  th, td { border-bottom:1px solid var(--line); padding:8px; text-align:left; white-space:nowrap; }
+  th { background:#FAFBFC; position:sticky; top:0; }
+  tr.dup td { background:var(--dup); }
+  .err { color:#C62828; font-size:14px; }
+  .muted { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<header><b>展場名單管理</b><button id="logout" hidden>登出</button></header>
+<main>
+  <div id="login" class="card" hidden>
+    <h3 style="margin-top:0">管理者登入</h3>
+    <input id="lEmail" type="email" placeholder="Email" autocomplete="username">
+    <input id="lPass" type="password" placeholder="密碼" autocomplete="current-password">
+    <button id="lBtn" style="width:100%">登入</button>
+    <div class="err" id="lErr"></div>
+  </div>
+
+  <div id="app" hidden>
+    <div class="card">
+      <div class="row">
+        <div><div class="lbl">品牌</div><select id="fBrand"></select></div>
+        <div><div class="lbl">填寫日期</div><select id="fDate"></select></div>
+        <div><div class="lbl">身分</div><select id="fRole"></select></div>
+        <div><div class="lbl">搜尋（姓名／電話／公司）</div><input type="search" id="fText"></div>
+        <div><div class="lbl">重複填寫</div>
+          <label><input type="checkbox" id="fNoDup"> 隱藏重複</label></div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="lbl">產品（勾選任一即符合；全不勾 = 全部）</div>
+        <div class="checks" id="fProducts"></div>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="card actions">
+      <button id="xAll">匯出目前篩選結果（單一工作表）</button>
+      <button id="xByProd" class="sec">依產品分頁匯出（給業務用）</button>
+      <span class="muted" id="count"></span>
+    </div>
+
+    <div class="wrap"><table>
+      <thead><tr><th>填寫時間</th><th>品牌</th><th>姓名</th><th>電話</th><th>Email</th><th>公司名稱</th><th>身分</th><th>想了解的產品</th><th>其它說明</th><th>重複</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+    <p class="muted">淺橘色列為重複填寫（同品牌、同電話，保留最早一筆為原始資料）。</p>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const C = window.SURVEY_CONFIG;
+const $ = id => document.getElementById(id);
+const app = initializeApp(C.firebase);
+const auth = getAuth(app);
+const db = getDatabase(app);
+let leads = [], unsub = null;
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const brandName = k => C.brands[k]?.name || k;
+const prodLabel = (b, id) => C.brands[b]?.products.find(p => p.id === id)?.label || id;
+const tz = { timeZone: "Asia/Taipei" };
+const dayOf = t => new Date(t).toLocaleDateString("sv-SE", tz);
+const timeOf = t => new Date(t).toLocaleString("sv-SE", tz).slice(0, 16);
+
+// ---------- 登入 ----------
+$("lBtn").onclick = async () => {
+  $("lErr").textContent = "";
+  try { await signInWithEmailAndPassword(auth, $("lEmail").value.trim(), $("lPass").value); }
+  catch { $("lErr").textContent = "登入失敗，請確認帳號密碼"; }
+};
+$("lPass").addEventListener("keydown", e => e.key === "Enter" && $("lBtn").click());
+$("logout").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, user => {
+  $("login").hidden = !!user; $("app").hidden = !user; $("logout").hidden = !user;
+  if (unsub) { unsub(); unsub = null; }
+  if (!user) return;
+  unsub = onValue(ref(db, "leads"), snap => {
+    const raw = snap.val() || {};
+    leads = Object.entries(raw).map(([id, d]) => ({ id, ...d, products: Object.keys(d.products || {}) }))
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    // 重複判斷：同品牌＋同電話（只比數字）
+    const seen = new Set();
+    leads.forEach(l => {
+      const k = l.brand + "|" + String(l.phone).replace(/\D/g, "");
+      l.dup = seen.has(k); seen.add(k);
+    });
+    buildFilters(); render();
+  }, err => {
+    console.error(err);
+    $("app").innerHTML = '<div class="card err">此帳號沒有讀取權限。請到 Firebase 主控台把此帳號的 UID 加入 admins。</div>';
+  });
+});
+
+// ---------- 篩選 ----------
+function setOptions(sel, opts) {
+  const cur = sel.value;
+  sel.innerHTML = opts.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join("");
+  if (opts.some(([v]) => v === cur)) sel.value = cur;
+}
+function buildFilters() {
+  setOptions($("fBrand"), [["", "全部品牌"], ...Object.entries(C.brands).map(([k, b]) => [k, b.name])]);
+  const days = [...new Set(leads.map(l => dayOf(l.createdAt)))].sort();
+  setOptions($("fDate"), [["", "全部日期"], ...days.map(d => [d, d])]);
+  setOptions($("fRole"), [["", "全部身分"], ...C.roles.map(r => [r, r]), ["__none", "（未填）"]]);
+  buildProductChecks();
+}
+function buildProductChecks() {
+  const prev = new Set([...document.querySelectorAll("#fProducts input:checked")].map(i => i.value));
+  const b = $("fBrand").value;
+  const list = Object.entries(C.brands).filter(([k]) => !b || k === b)
+    .flatMap(([k, br]) => br.products.map(p => [k + ":" + p.id, (b ? "" : br.name.split(" ")[0] + "－") + p.label]));
+  $("fProducts").innerHTML = list.map(([v, t]) =>
+    `<label><input type="checkbox" value="${esc(v)}" ${prev.has(v) ? "checked" : ""}> ${esc(t)}</label>`).join("");
+}
+["fDate", "fRole", "fNoDup"].forEach(id => $(id).addEventListener("change", render));
+$("fBrand").addEventListener("change", () => { buildProductChecks(); render(); });
+$("fText").addEventListener("input", render);
+$("fProducts").addEventListener("change", render);
+
+function filtered() {
+  const b = $("fBrand").value, d = $("fDate").value, r = $("fRole").value;
+  const q = $("fText").value.trim().toLowerCase();
+  const prods = [...document.querySelectorAll("#fProducts input:checked")].map(i => i.value);
+  return leads.filter(l =>
+    (!b || l.brand === b) &&
+    (!d || dayOf(l.createdAt) === d) &&
+    (!r || (r === "__none" ? !l.role : l.role === r)) &&
+    (!$("fNoDup").checked || !l.dup) &&
+    (!q || [l.name, l.phone, l.company].some(x => String(x || "").toLowerCase().includes(q))) &&
+    (!prods.length || l.products.some(p => prods.includes(l.brand + ":" + p)))
+  );
+}
+
+function render() {
+  const rows = filtered();
+  $("count").textContent = `目前顯示 ${rows.length} 筆`;
+  $("tb").innerHTML = rows.slice().reverse().map(l => `<tr class="${l.dup ? "dup" : ""}">
+    <td>${timeOf(l.createdAt)}</td><td>${esc(brandName(l.brand))}</td><td>${esc(l.name)}</td>
+    <td>${esc(l.phone)}</td><td>${esc(l.email)}</td><td>${esc(l.company)}</td><td>${esc(l.role)}</td>
+    <td>${esc(l.products.map(p => prodLabel(l.brand, p)).join("、"))}</td><td>${esc(l.otherText)}</td>
+    <td>${l.dup ? "重複" : ""}</td></tr>`).join("");
+
+  // 統計：各產品筆數（不含重複）
+  const uniq = leads.filter(l => !l.dup);
+  const counts = {};
+  uniq.forEach(l => l.products.forEach(p => { const k = l.brand + ":" + p; counts[k] = (counts[k] || 0) + 1; }));
+  $("stats").innerHTML = `<div class="stat"><b>${uniq.length}</b><span>總名單（不含重複）</span></div>` +
+    Object.entries(C.brands).flatMap(([k, br]) => br.products.map(p => {
+      const n = counts[k + ":" + p.id]; if (!n) return "";
+      return `<div class="stat"><b>${n}</b><span>${esc(br.name.split(" ")[0])}－${esc(p.label)}</span></div>`;
+    })).join("");
+}
+
+// ---------- 匯出 Excel ----------
+const toRow = l => ({
+  "填寫時間": timeOf(l.createdAt),
+  "品牌": brandName(l.brand),
+  "姓名": l.name,
+  "電話": l.phone,
+  "Email": l.email,
+  "公司名稱": l.company || "",
+  "身分": l.role || "",
+  "想了解的產品": l.products.map(p => prodLabel(l.brand, p)).join("、"),
+  "其它說明": l.otherText || "",
+  "重複填寫": l.dup ? "重複" : "",
+  "活動": l.event || ""
+});
+function sheet(rows) {
+  const ws = XLSX.utils.json_to_sheet(rows.map(toRow));
+  ws["!cols"] = [16, 18, 10, 14, 26, 20, 10, 28, 24, 8, 16].map(w => ({ wch: w }));
+  return ws;
+}
+function fileName(tag) {
+  const b = $("fBrand").value, d = $("fDate").value;
+  return ["展場名單", b ? brandName(b).split(" ")[0] : "全品牌", d || "全部日期", tag].filter(Boolean).join("_") + ".xlsx";
+}
+function safeSheetName(name, used) {
+  let n = name.replace(/[\\\/\?\*\[\]:]/g, "").slice(0, 31) || "Sheet";
+  let base = n, i = 2;
+  while (used.has(n)) n = base.slice(0, 28) + "_" + i++;
+  used.add(n); return n;
+}
+
+$("xAll").onclick = () => {
+  const rows = filtered();
+  if (!rows.length) return alert("目前沒有資料可匯出");
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, sheet(rows), "名單");
+  XLSX.writeFile(wb, fileName(""));
+};
+
+$("xByProd").onclick = () => {
+  const rows = filtered();
+  if (!rows.length) return alert("目前沒有資料可匯出");
+  const wb = XLSX.utils.book_new(), used = new Set();
+  XLSX.utils.book_append_sheet(wb, sheet(rows), safeSheetName("總表", used));
+  const b = $("fBrand").value;
+  Object.entries(C.brands).filter(([k]) => !b || k === b).forEach(([k, br]) => {
+    br.products.forEach(p => {
+      const sub = rows.filter(l => l.brand === k && l.products.includes(p.id));
+      if (!sub.length) return;
+      const nm = (b ? "" : br.name.split(" ")[0] + "-") + p.label;
+      XLSX.utils.book_append_sheet(wb, sheet(sub), safeSheetName(nm, used));
+    });
+  });
+  XLSX.writeFile(wb, fileName("依產品分頁"));
+};
+</script>
+</body>
+</html>

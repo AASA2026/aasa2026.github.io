@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>產品諮詢登記</title>
+<script src="config.js"></script>
+<style>
+  :root { --brand:#0B4EA2; --on:#fff; --bg:#F4F5F7; --card:#fff; --ink:#1B1F24; --muted:#6B7280; --line:#D9DDE3; --err:#C62828; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; }
+  header { background:var(--brand); color:var(--on); padding:28px 20px 22px; }
+  header .brand { font-size:22px; font-weight:700; }
+  header .sub { opacity:.85; font-size:14px; margin-top:4px; }
+  main { max-width:520px; margin:0 auto; padding:16px 16px 40px; }
+  section { background:var(--card); border-radius:14px; padding:18px 16px; margin-bottom:14px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  h2 { font-size:17px; margin:0 0 12px; }
+  .tag { font-size:12px; font-weight:400; color:var(--muted); background:var(--bg); border-radius:99px; padding:2px 8px; margin-left:6px; vertical-align:2px; }
+  .chips { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .chip { border:1.5px solid var(--line); border-radius:12px; padding:13px 10px; text-align:center; font-size:16px; background:#fff; cursor:pointer; user-select:none; transition:.12s; }
+  .chip.on { border-color:var(--brand); background:var(--brand); color:var(--on); font-weight:600; }
+  label.f { display:block; font-size:14px; color:var(--muted); margin-top:12px; }
+  label.f:first-of-type { margin-top:0; }
+  label.f b { color:var(--err); font-weight:400; }
+  input[type=text], input[type=tel], input[type=email] { display:block; width:100%; margin-top:5px; font-size:17px; padding:12px; border:1.5px solid var(--line); border-radius:10px; color:var(--ink); background:#fff; }
+  input:focus { outline:none; border-color:var(--brand); }
+  input.bad { border-color:var(--err); }
+  #otherWrap { margin-top:12px; }
+  .err { color:var(--err); font-size:13px; min-height:0; margin-top:4px; }
+  .err:empty { display:none; }
+  details { font-size:13px; color:var(--muted); margin-bottom:12px; }
+  details summary { cursor:pointer; color:var(--ink); font-size:14px; }
+  details div { margin-top:8px; line-height:1.7; }
+  label.chk { display:flex; gap:10px; align-items:flex-start; font-size:15px; cursor:pointer; }
+  label.chk input { width:22px; height:22px; margin:0; flex:none; accent-color:var(--brand); }
+  button { width:100%; border:0; border-radius:12px; padding:16px; font-size:18px; font-weight:700; background:var(--brand); color:var(--on); cursor:pointer; }
+  button:disabled { opacity:.55; }
+  .center { text-align:center; }
+  #done { text-align:center; padding-top:30px; }
+  #done .ok { width:72px; height:72px; border-radius:50%; background:var(--brand); color:var(--on); font-size:40px; line-height:72px; margin:0 auto 16px; }
+  #done h2 { font-size:22px; }
+  #done .ticket { background:#fff; border:2px dashed var(--brand); border-radius:14px; padding:16px; margin:20px 0; }
+  #done .ticket .who { font-size:20px; font-weight:700; }
+  #done .ticket .meta { color:var(--muted); font-size:13px; margin-top:4px; }
+  #done a { color:var(--muted); font-size:14px; }
+  #pick a { display:block; background:#fff; border-radius:12px; padding:16px; margin-bottom:10px; color:var(--ink); text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" id="brandName">產品諮詢登記</div>
+  <div class="sub">留下資料，專人將盡快與您聯繫</div>
+</header>
+
+<main>
+  <form id="f" novalidate hidden>
+    <section>
+      <h2>想了解的產品<span class="tag">可複選</span></h2>
+      <div class="chips" id="products"></div>
+      <div id="otherWrap" hidden>
+        <input type="text" id="otherText" maxlength="200" placeholder="請簡述想了解的產品或需求">
+      </div>
+      <div class="err" id="eProducts"></div>
+    </section>
+
+    <section>
+      <h2>聯絡資料</h2>
+      <label class="f">姓名 <b>*</b><input type="text" id="name" maxlength="50" autocomplete="name"></label>
+      <div class="err" id="eName"></div>
+      <label class="f">手機／電話 <b>*</b><input type="tel" id="phone" maxlength="20" inputmode="tel" autocomplete="tel"></label>
+      <div class="err" id="ePhone"></div>
+      <label class="f">Email <b>*</b><input type="email" id="email" maxlength="100" inputmode="email" autocomplete="email"></label>
+      <div class="err" id="eEmail"></div>
+      <label class="f">公司名稱（選填）<input type="text" id="company" maxlength="100" autocomplete="organization"></label>
+    </section>
+
+    <section>
+      <h2>您的身分<span class="tag">選填</span></h2>
+      <div class="chips" id="roles"></div>
+    </section>
+
+    <section>
+      <details>
+        <summary>個人資料蒐集告知事項</summary>
+        <div id="notice"></div>
+      </details>
+      <label class="chk"><input type="checkbox" id="consent"><span>我已閱讀並同意個人資料蒐集告知事項</span></label>
+      <div class="err" id="eConsent"></div>
+    </section>
+
+    <button id="submit" type="submit">送出</button>
+    <div class="err center" id="eSubmit"></div>
+  </form>
+
+  <div id="done" hidden>
+    <div class="ok">✓</div>
+    <h2>感謝您的填寫！</h2>
+    <div>專人將盡快與您聯繫</div>
+    <div class="ticket">
+      <div class="who" id="dWho"></div>
+      <div class="meta" id="dMeta"></div>
+      <div style="margin-top:10px">請出示此畫面給現場人員</div>
+    </div>
+    <a href="" id="again">重新填寫一份</a>
+  </div>
+
+  <div id="pick" hidden>
+    <section><h2>請選擇品牌</h2><div id="pickList"></div></section>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const C = window.SURVEY_CONFIG;
+const $ = id => document.getElementById(id);
+const brandKey = new URLSearchParams(location.search).get("b");
+const brand = C.brands[brandKey];
+
+// 網址沒有指定品牌 → 顯示品牌選單
+if (!brand) {
+  $("pick").hidden = false;
+  $("pickList").innerHTML = Object.entries(C.brands)
+    .map(([k, b]) => `<a href="?b=${k}">${b.name}</a>`).join("");
+} else {
+  init();
+}
+
+function init() {
+  document.documentElement.style.setProperty("--brand", brand.color);
+  document.documentElement.style.setProperty("--on", brand.textOnColor);
+  $("brandName").textContent = brand.name;
+  document.title = brand.name + "｜產品諮詢登記";
+
+  // 產品（複選）
+  const picked = new Set();
+  $("products").innerHTML = brand.products
+    .map(p => `<div class="chip" data-id="${p.id}">${p.label}</div>`).join("");
+  $("products").addEventListener("click", e => {
+    const c = e.target.closest(".chip"); if (!c) return;
+    const id = c.dataset.id;
+    picked.has(id) ? picked.delete(id) : picked.add(id);
+    c.classList.toggle("on");
+    $("otherWrap").hidden = !picked.has("other");
+    $("eProducts").textContent = "";
+  });
+
+  // 身分（單選，可取消）
+  let role = "";
+  $("roles").innerHTML = C.roles.map(r => `<div class="chip" data-r="${r}">${r}</div>`).join("");
+  $("roles").addEventListener("click", e => {
+    const c = e.target.closest(".chip"); if (!c) return;
+    role = role === c.dataset.r ? "" : c.dataset.r;
+    $("roles").querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x.dataset.r === role));
+  });
+
+  $("notice").innerHTML = `
+    ${C.companyName}（以下稱本公司）依個人資料保護法第8條告知：<br>
+    一、蒐集目的：行銷、客戶管理與服務、產品諮詢回覆。<br>
+    二、個資類別：姓名、電話、Email、公司名稱、身分別。<br>
+    三、利用期間、地區、對象及方式：於蒐集目的存續期間內，在臺灣地區，由本公司及負責之業務人員以電話、Email 聯繫方式利用。<br>
+    四、您可依個資法第3條向本公司請求查詢、閱覽、製給複本、補充更正、停止蒐集處理利用或刪除。<br>
+    五、您可自由選擇是否提供，惟未提供必填資料將無法為您安排專人聯繫。`;
+
+  // 即時清除錯誤提示
+  ["name","phone","email"].forEach(k => $(k).addEventListener("input", () => {
+    $(k).classList.remove("bad"); $("e" + k[0].toUpperCase() + k.slice(1)).textContent = "";
+  }));
+  $("consent").addEventListener("change", () => $("eConsent").textContent = "");
+
+  const db = getDatabase(initializeApp(C.firebase));
+
+  $("f").hidden = false;
+  $("f").addEventListener("submit", async e => {
+    e.preventDefault();
+    const v = {
+      name: $("name").value.trim(),
+      phone: $("phone").value.trim(),
+      email: $("email").value.trim(),
+      company: $("company").value.trim(),
+      otherText: picked.has("other") ? $("otherText").value.trim() : ""
+    };
+
+    // 檢查
+    let first = null;
+    const fail = (errId, msg, input) => { $(errId).textContent = msg; if (input) input.classList.add("bad"); first ??= input || $(errId); };
+    if (!picked.size) fail("eProducts", "請至少選擇一項產品");
+    if (!v.name) fail("eName", "請填寫姓名", $("name"));
+    const digits = v.phone.replace(/\D/g, "");
+    if (!/^[\d\s\-+()#]+$/.test(v.phone) || digits.length < 8 || digits.length > 15) fail("ePhone", "請確認電話號碼", $("phone"));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) fail("eEmail", "請確認 Email 格式", $("email"));
+    if (!$("consent").checked) fail("eConsent", "請勾選同意個資告知事項");
+    if (first) { first.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+
+    const data = {
+      brand: brandKey,
+      event: C.eventName,
+      name: v.name,
+      phone: v.phone,
+      email: v.email,
+      products: Object.fromEntries([...picked].map(id => [id, true])),
+      consent: true,
+      createdAt: serverTimestamp()
+    };
+    if (v.company) data.company = v.company;
+    if (role) data.role = role;
+    if (v.otherText) data.otherText = v.otherText;
+
+    const btn = $("submit");
+    btn.disabled = true; btn.textContent = "送出中…"; $("eSubmit").textContent = "";
+    try {
+      await Promise.race([
+        set(push(ref(db, "leads")), data),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 15000))
+      ]);
+      $("f").hidden = true;
+      $("done").hidden = false;
+      $("dWho").textContent = v.name;
+      $("dMeta").textContent = brand.name + "｜" + new Date().toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false });
+      $("again").href = "?b=" + brandKey;
+      window.scrollTo(0, 0);
+    } catch (err) {
+      console.error(err);
+      $("eSubmit").textContent = err.message === "timeout"
+        ? "網路訊號不穩，資料可能尚未送出，請稍候再按一次「送出」"
+        : "送出失敗，請稍後再試或洽現場人員";
+      btn.disabled = false; btn.textContent = "送出";
+    }
+  });
+}
+</script>
+</body>
+</html>
