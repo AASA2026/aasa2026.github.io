@@ -62,7 +62,7 @@ tr.cancelled td.act{text-decoration:none}
   <div id="loginView" class="card login hidden">
     <h2 style="font-weight:400;margin:0 0 4px">管理員登入</h2>
     <div style="font-size:13px;color:#6f6967">帳號需先由專案管理者加入管理員名單</div>
-    <input type="email" id="lEmail" placeholder="Email" autocomplete="username">
+    <input type="text" id="lEmail" placeholder="帳號（例如 assa）" autocomplete="username" autocapitalize="off" spellcheck="false">
     <input type="password" id="lPass" placeholder="密碼" autocomplete="current-password">
     <button class="btn y" id="loginBtn">登入</button>
     <div class="msg" id="loginMsg"></div>
@@ -162,9 +162,11 @@ tr.cancelled td.act{text-decoration:none}
     XLSX.writeFile(wb, `Yale城市解鎖計畫_預約名單_${stamp}.xlsx`);
   };
 
+  // 帳號沒有 @ 時，自動補上 @cityunlock.local（Firebase 登入需要 Email 格式）
+  const toEmail = v => { v = v.trim().toLowerCase(); return v.includes("@") ? v : v + "@cityunlock.local"; };
   function showMain(email){
     $("loginView").classList.add("hidden"); $("mainView").classList.remove("hidden");
-    $("who").textContent = email; $("who").classList.remove("hidden"); $("logoutBtn").classList.remove("hidden");
+    $("who").textContent = String(email).replace(/@cityunlock\.local$/i, ""); $("who").classList.remove("hidden"); $("logoutBtn").classList.remove("hidden");
   }
 
   if (DEMO) {
@@ -202,7 +204,7 @@ tr.cancelled td.act{text-decoration:none}
 
     $("loginBtn").onclick = async () => {
       $("loginMsg").textContent = "";
-      try { await au.signInWithEmailAndPassword(auth, $("lEmail").value.trim(), $("lPass").value); }
+      try { await au.signInWithEmailAndPassword(auth, toEmail($("lEmail").value), $("lPass").value); }
       catch(e){ $("loginMsg").textContent = "登入失敗，請確認帳號密碼"; }
     };
     $("lPass").addEventListener("keydown", e => { if (e.key === "Enter") $("loginBtn").click(); });
