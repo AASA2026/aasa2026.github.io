@@ -27,7 +27,7 @@ window.EMAILJS = {
 // 3) 活動資訊（顯示在表單與確認信上）
 //    ⚠ 改截止時間時，Firestore 規則裡的截止時間也要一起改
 window.EVENT = {
-  dateLabel: "2026 年 11 月 14 日（六）",
+  dateLabel: "2026/11/14（六）",
   timeLabel: "12:30 – 16:30",
   place: "台北 Monceau Fleurs",
   address: "臺北市大同區南京西路25巷4-1號",

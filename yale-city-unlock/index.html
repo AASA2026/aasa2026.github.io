@@ -24,6 +24,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:"Huninn","Not
 h2{font-size:21px;margin:0 0 14px;display:flex;align-items:center;gap:10px;font-weight:400}
 .step{display:inline-grid;place-items:center;width:34px;height:34px;border:var(--line);border-radius:50%;font-size:16px;flex:none}
 p{margin:0 0 10px}
+/* 避免最後一行只剩一個字 */
+p,.task>div,.fact>span,.tip,.notice,.muted,.summary,.check span,dd{text-wrap:pretty;word-break:normal;line-break:strict}
+h1,h2,.done p,.closed p,.deadline{text-wrap:balance}
+.nw{white-space:nowrap}
+.addr{display:block;font-size:14px;color:var(--ink-soft);margin-top:2px}
 .muted{color:var(--ink-soft);font-size:14px}
 
 /* header */
@@ -38,11 +43,11 @@ p{margin:0 0 10px}
 
 /* info */
 .tasks{display:grid;gap:12px;margin:14px 0 18px}
-.task{display:flex;gap:12px;align-items:flex-start;border:var(--line);border-radius:var(--r-md);padding:12px 14px}
-.task .no{flex:none;background:#fff;border:var(--line);border-radius:999px;padding:0 10px;font-size:14px;line-height:26px;margin-top:1px}
+.task{display:flex;flex-direction:column;gap:6px;align-items:flex-start;border:var(--line);border-radius:var(--r-md);padding:12px 14px}
+.task .no{flex:none;align-self:flex-start;background:#fff;border:var(--line);border-radius:999px;padding:0 10px;font-size:14px;line-height:26px;margin-top:1px}
 .task b{font-weight:400}
 .t1{background:#fde4df}.t2{background:#fff3a8}.t3{background:var(--green)}
-.task .hl{display:inline-block;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:0 6px;font-size:13px;margin-left:4px}
+.task .hl{display:inline-block;white-space:nowrap;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:0 6px;font-size:13px;margin-left:4px}
 .facts{display:grid;gap:8px;border:var(--line);border-radius:var(--r-md);padding:14px 16px;background:var(--paper)}
 .fact{display:flex;gap:10px}
 .fact .k{flex:none;background:var(--yellow);border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:14px;height:fit-content;line-height:24px}
@@ -118,7 +123,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
     <svg class="deco d2" viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3E3A39" stroke-width="3"><path d="M50 18c10 0 16 8 16 16s-6 14-16 22C40 48 34 42 34 34s6-16 16-16z" fill="#B9DAA5"/><circle cx="50" cy="70" r="14" fill="#FFFCF6"/><circle cx="50" cy="70" r="5" fill="#3E3A39"/></g></svg>
     <img class="logo" src="yale-logo.png" alt="Yale">
     <div class="kicker">Luna Elite+ 新品上市</div>
-    <h1>Yale 電子鎖<br>城市解鎖計畫<span>Luna Elite+ 新品體驗會</span></h1>
+    <h1>Yale 電子鎖<br>城市解鎖計畫<span><span class="nw">Luna Elite+</span> <span class="nw">新品體驗會</span></span></h1>
   </header>
 
   <main id="formView">
@@ -127,9 +132,9 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
       <h2><span class="step">1</span>活動介紹</h2>
       <p>歡迎參加「Yale 電子鎖城市解鎖計畫」！<br>活動期間完成以下指定任務，即可獲得對應好禮：</p>
       <div class="tasks">
-        <div class="task t1"><span class="no">任務 1</span><div><b>抵達活動現場</b>，可獲得品牌單支花朵<span class="hl">數量有限</span></div></div>
-        <div class="task t2"><span class="no">任務 2</span><div><b>按讚 Yale Home 官方粉專</b>，可獲得品牌紓壓按鈕乙份<span class="hl">數量有限，送完為止</span></div></div>
-        <div class="task t3"><span class="no">任務 3</span><div><b>預約並完成新品體驗</b>，可額外獲得品牌花束組乙份</div></div>
+        <div class="task t1"><span class="no">任務 1</span><div><b>抵達活動現場</b>，可獲得<span class="nw">品牌單支花朵</span><br><span class="hl" style="margin-left:0">數量有限</span></div></div>
+        <div class="task t2"><span class="no">任務 2</span><div><b>按讚 <span class="nw">Yale Home</span> 官方粉專</b>，可獲得<span class="nw">品牌紓壓按鈕乙份</span><br><span class="hl" style="margin-left:0">數量有限，送完為止</span></div></div>
+        <div class="task t3"><span class="no">任務 3</span><div><b>預約並完成新品體驗</b>，可額外獲得<span class="nw">品牌花束組乙份</span></div></div>
       </div>
       <div class="facts">
         <div class="fact"><span class="k">日期</span><span id="fDate"></span></div>
@@ -206,7 +211,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
     <svg class="done-badge" viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3E3A39" stroke-width="3"><circle cx="50" cy="50" r="44" fill="#B9DAA5"/><rect x="32" y="46" width="36" height="28" rx="6" fill="#FFD800"/><path d="M39 46v-8a11 11 0 0 1 22 0" fill="none" stroke-linecap="round"/><circle cx="50" cy="59" r="4" fill="#3E3A39"/></g></svg>
     <h2>解鎖成功！預約完成</h2>
     <p style="text-align:center" id="mailOk">確認信已寄到 <b style="font-weight:400" id="dEmail"></b><br><span class="muted">沒收到的話，請看一下垃圾郵件匣</span></p>
-    <p style="text-align:center" id="mailFail" class="hidden">預約已成立！確認信寄送稍有延遲，<br>請先<b style="font-weight:400">截圖保存這個畫面</b>作為報到憑證。</p>
+    <p style="text-align:center" id="mailFail" class="hidden">預約已成立！<br>確認信寄送稍有延遲，<br>請先<b style="font-weight:400">截圖保存這個畫面</b><br>作為報到憑證。</p>
     <div class="ticket">
       <div class="no">預約編號<b id="dNo"></b></div>
       <dl>
@@ -243,9 +248,11 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
 
   // 活動資訊
   const $ = id => document.getElementById(id);
-  $("fDate").textContent = EV.dateLabel;
   $("fTime").textContent = EV.timeLabel;
-  $("fPlace").textContent = EV.place + (EV.address ? "（" + EV.address + "）" : "");
+  const placeHTML = () => '<span class="nw">' + EV.place.replace(/[&<]/g,"") + '</span>' + (EV.address ? '<span class="addr">' + EV.address.replace(/[&<]/g,"") + '</span>' : "");
+  const dateHTML = () => EV.dateLabel.replace(/^(.*?)(（.）)$/, '<span class="nw">$1</span><span class="nw">$2</span>');
+  $("fDate").innerHTML = dateHTML();
+  $("fPlace").innerHTML = placeHTML();
   document.querySelectorAll(".dl").forEach(el => el.textContent = EV.deadlineLabel);
   $("fbLink").href = EV.facebookUrl;
   if (DEMO) $("demoBar").classList.remove("hidden");
@@ -407,10 +414,10 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
       const res = await api(data);
       $("dNo").textContent = res.bookingNo;
       $("dName").textContent = data.name;
-      $("dDate").textContent = EV.dateLabel;
+      $("dDate").innerHTML = dateHTML();
       $("dSlot").textContent = slotLabel(data.slotId);
       $("dParty").textContent = data.partySize + " 人";
-      $("dPlace").textContent = EV.place + (EV.address ? "（" + EV.address + "）" : "");
+      $("dPlace").innerHTML = placeHTML();
       $("dEmail").textContent = data.email;
       $("mailOk").classList.toggle("hidden", res.emailSent === false);
       $("mailFail").classList.toggle("hidden", res.emailSent !== false);
