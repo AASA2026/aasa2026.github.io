@@ -31,6 +31,7 @@ p,.task>div,.fact>span,.tip,.notice,.muted,.summary,.check span,dd,.addr{text-al
 .ticket dt{white-space:nowrap}
 .tip.left{text-align:left}
 .plc{display:block;text-align:left}
+.maplink{display:inline-block;margin-top:6px;font-size:14px;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 12px;text-decoration:none}
 h1,h2,.done p,.closed p,.deadline{text-wrap:balance}
 .nw{white-space:nowrap}
 .addr{display:block;font-size:14px;color:var(--ink-soft);margin-top:2px}
@@ -254,7 +255,8 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   // 活動資訊
   const $ = id => document.getElementById(id);
   $("fTime").textContent = EV.timeLabel;
-  const placeHTML = () => '<span class="plc">' + EV.place.replace(/[&<]/g,"") + '</span>' + (EV.address ? '<span class="addr">' + EV.address.replace(/[&<]/g,"") + '</span>' : "");
+  const placeHTML = () => '<span class="plc">' + EV.place.replace(/[&<]/g,"").replace(/ ([^ ]+)$/, ' <span class="nw">$1</span>') + '</span>' + (EV.address ? '<span class="addr">' + EV.address.replace(/[&<]/g,"") + '</span>' : "")
+    + (EV.mapUrl ? '<a class="maplink" href="' + EV.mapUrl.replace(/"/g,"") + '" target="_blank" rel="noopener">📍 Google Maps 導航</a>' : "");
   const dateHTML = () => EV.dateLabel.replace(/^(.*?)(（.）)$/, '<span class="nw">$1</span><span class="nw">$2</span>');
   $("fDate").innerHTML = dateHTML();
   $("fPlace").innerHTML = placeHTML();
@@ -375,7 +377,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         await window.emailjs.send(ej.serviceId, ej.templateId, {
           to_email: data.email, to_name: data.name, booking_no: bookingNo,
           event_date: EV.dateLabel, slot: slot.label, party_size: data.partySize + " 人",
-          place: EV.place + (EV.address ? "（" + EV.address + "）" : ""), facebook_url: EV.facebookUrl
+          place: EV.place + (EV.address ? "（" + EV.address + "）" : ""), facebook_url: EV.facebookUrl, map_url: EV.mapUrl || ""
         }, { publicKey: ej.publicKey });
         emailSent = true;
       } catch (err) { console.error("mail failed", err); }

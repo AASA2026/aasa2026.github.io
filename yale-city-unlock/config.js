@@ -29,9 +29,10 @@ window.EMAILJS = {
 window.EVENT = {
   dateLabel: "2026/11/14（六）",
   timeLabel: "12:30 – 16:30",
-  place: "台北 Monceau Fleurs",
+  place: "MONCEAU FLEURS 中山花町",
   address: "臺北市大同區南京西路25巷4-1號",
   deadlineISO: "2026-11-13T17:00:00+08:00", // 預約截止：11/13（五）17:00
   deadlineLabel: "11 月 13 日（五）17:00",
+  mapUrl: "https://maps.app.goo.gl/1sMsmq3bQEpvcRbN7", // Google Maps 導航連結
   facebookUrl: "https://www.facebook.com/YaleHomeTaiwan"
 };
