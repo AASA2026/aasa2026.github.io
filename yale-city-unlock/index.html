@@ -25,7 +25,12 @@ h2{font-size:21px;margin:0 0 14px;display:flex;align-items:center;gap:10px;font-
 .step{display:inline-grid;place-items:center;width:34px;height:34px;border:var(--line);border-radius:50%;font-size:16px;flex:none}
 p{margin:0 0 10px}
 /* 避免最後一行只剩一個字 */
-p,.task>div,.fact>span,.tip,.notice,.muted,.summary,.check span,dd{text-wrap:pretty;word-break:normal;line-break:strict}
+/* 內文左右對齊 */
+p,.task>div,.fact>span,.tip,.notice,.muted,.summary,.check span,dd,.addr{text-align:justify;text-justify:inter-character;line-break:strict}
+.done p,.closed p{text-align:center}
+.ticket dt{white-space:nowrap}
+.tip.left{text-align:left}
+.plc{display:block;text-align:left}
 h1,h2,.done p,.closed p,.deadline{text-wrap:balance}
 .nw{white-space:nowrap}
 .addr{display:block;font-size:14px;color:var(--ink-soft);margin-top:2px}
@@ -132,9 +137,9 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
       <h2><span class="step">1</span>活動介紹</h2>
       <p>歡迎參加「Yale 電子鎖城市解鎖計畫」！<br>活動期間完成以下指定任務，即可獲得對應好禮：</p>
       <div class="tasks">
-        <div class="task t1"><span class="no">任務 1</span><div><b>抵達活動現場</b>，可獲得<span class="nw">品牌單支花朵</span><br><span class="hl" style="margin-left:0">數量有限</span></div></div>
-        <div class="task t2"><span class="no">任務 2</span><div><b>按讚 <span class="nw">Yale Home</span> 官方粉專</b>，可獲得<span class="nw">品牌紓壓按鈕乙份</span><br><span class="hl" style="margin-left:0">數量有限，送完為止</span></div></div>
-        <div class="task t3"><span class="no">任務 3</span><div><b>預約並完成新品體驗</b>，可額外獲得<span class="nw">品牌花束組乙份</span></div></div>
+        <div class="task t1"><span class="no">任務 1</span><div><b>抵達活動現場</b>，可獲得品牌單支花朵<br><span class="hl" style="margin-left:0">數量有限</span></div></div>
+        <div class="task t2"><span class="no">任務 2</span><div><b>按讚 Yale Home 官方粉專</b>，可獲得品牌紓壓按鈕乙份<br><span class="hl" style="margin-left:0">數量有限，送完為止</span></div></div>
+        <div class="task t3"><span class="no">任務 3</span><div><b>預約並完成新品體驗</b>，可額外獲得品牌花束組乙份</div></div>
       </div>
       <div class="facts">
         <div class="fact"><span class="k">日期</span><span id="fDate"></span></div>
@@ -223,7 +228,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
       </dl>
     </div>
     <div class="tip">活動當天請於預約時段抵達現場，向工作人員出示<b style="font-weight:400">預約編號</b>或<b style="font-weight:400">確認信</b>即可報到。<br>建議先截圖這個畫面保存。</div>
-    <div class="tip" style="background:#fde4df">如需取消預約，請私訊 <a id="fbLink" target="_blank" rel="noopener">Yale Home Taiwan 臉書粉專</a>，我們將由專人為您處理。</div>
+    <div class="tip left" style="background:#fde4df">如需取消預約，請私訊 <a id="fbLink" target="_blank" rel="noopener">Yale Home Taiwan 臉書粉專</a>，我們將由專人為您處理。</div>
   </main>
 
   <footer>© Yale｜Yale 電子鎖 城市解鎖計畫</footer>
@@ -249,7 +254,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   // 活動資訊
   const $ = id => document.getElementById(id);
   $("fTime").textContent = EV.timeLabel;
-  const placeHTML = () => '<span class="nw">' + EV.place.replace(/[&<]/g,"") + '</span>' + (EV.address ? '<span class="addr">' + EV.address.replace(/[&<]/g,"") + '</span>' : "");
+  const placeHTML = () => '<span class="plc">' + EV.place.replace(/[&<]/g,"") + '</span>' + (EV.address ? '<span class="addr">' + EV.address.replace(/[&<]/g,"") + '</span>' : "");
   const dateHTML = () => EV.dateLabel.replace(/^(.*?)(（.）)$/, '<span class="nw">$1</span><span class="nw">$2</span>');
   $("fDate").innerHTML = dateHTML();
   $("fPlace").innerHTML = placeHTML();
