@@ -208,7 +208,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         <div class="summary" id="summary">尚未選擇時段</div>
         <button type="submit" class="submit" id="submitBtn">完成預約</button>
         <div class="formerr" id="formErr"></div>
-        <div class="deadline">預約截止：<span class="dl"></span>　｜　每支手機限預約一次</div>
+        <div class="deadline">預約截止：<span class="dl nw"></span><br>每支手機限預約一次</div>
       </section>
     </form>
   </main>
@@ -295,7 +295,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   }
   function updateSummary(){
     $("summary").innerHTML = chosen
-      ? "您選擇的是：<br>" + EV.dateLabel + "　" + slotLabel(chosen) + "　共 " + party + " 人"
+      ? "您選擇的是：<br>" + EV.dateLabel + "<br>" + slotLabel(chosen).replace("–", " - ") + "　共 " + party + " 人"
       : "尚未選擇時段";
   }
   document.querySelectorAll("#party button").forEach(b => b.onclick = () => {
