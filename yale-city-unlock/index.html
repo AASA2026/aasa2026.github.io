@@ -29,6 +29,7 @@ p{margin:0 0 10px}
 p,.task>div,.fact>span,.tip,.notice,.muted,.summary,.check span,dd,.addr{text-align:justify;text-justify:inter-character;line-break:strict}
 .done p,.closed p{text-align:center}
 .ticket dt{white-space:nowrap}
+.summary{text-align:left !important}
 .tip.left{text-align:left}
 .plc{display:block;text-align:left}
 .maplink{display:inline-block;margin-top:6px;font-size:14px;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:999px;padding:2px 12px;text-decoration:none}
@@ -235,7 +236,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   <footer>© Yale｜Yale 電子鎖 城市解鎖計畫</footer>
 </div>
 
-<script src="config.js"></script>
+<script src="config.js?v=1028c"></script>
 <script>
 (function(){
   const EV = window.EVENT;
@@ -293,8 +294,8 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
     updateSummary();
   }
   function updateSummary(){
-    $("summary").textContent = chosen
-      ? "您選擇的是：" + EV.dateLabel + "　" + slotLabel(chosen) + "　共 " + party + " 人"
+    $("summary").innerHTML = chosen
+      ? "您選擇的是：<br>" + EV.dateLabel + "　" + slotLabel(chosen) + "　共 " + party + " 人"
       : "尚未選擇時段";
   }
   document.querySelectorAll("#party button").forEach(b => b.onclick = () => {
