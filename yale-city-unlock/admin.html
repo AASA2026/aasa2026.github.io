@@ -122,7 +122,7 @@ tr.cancelled td.act{text-decoration:none}
   let bookings = [], cancelFn = null;
 
   const srcOf = b => b.source === "onsite" ? "onsite" : "online";
-  const srcTag = b => srcOf(b) === "onsite" ? '<span class="tag" style="background:#F2A497">現場</span>' : '<span class="tag" style="background:#A8D3E6">線上</span>';
+  const srcTag = b => srcOf(b) === "onsite" ? '<span class="tag" style="background:#E4DEF4">現場</span>' : '<span class="tag" style="background:#A8D3E6">線上</span>';
   function sorted(list){ return list.slice().sort((a,b) => (a.slotOrder-b.slotOrder) || ((a.createdAtMs||0)-(b.createdAtMs||0))); }
   function render(){
     const active = bookings.filter(b => b.status !== "cancelled");
