@@ -257,7 +257,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         <a id="calApple" class="calbtn">iPhone／Outlook 行事曆</a>
         <a id="calGoogle" class="calbtn" target="_blank" rel="noopener">Google 日曆</a>
       </div>
-      <div class="muted" style="font-size:13px;margin-top:8px">在 LINE 或 Facebook 裡按了沒反應的話，請先截圖保存本頁，再點右上角選單「用瀏覽器開啟」後，按「查詢我的預約」即可加入。</div>
+      <div class="muted" style="font-size:13px;margin-top:8px">在 LINE 裡按下後，會自動改用 Safari／Chrome 開啟行事曆，請在跳出的畫面按「加入」。</div>
     </div>
     <div class="tip">請於預約時段向現場工作人員出示<b style="font-weight:400">這個預約完成頁面</b>，即可領取品牌紓壓按鈕（乙份）及品牌花束組（乙份）。<br>建議先截圖這個畫面保存。</div>
     <div class="tip left" style="background:#fde4df">如需取消預約，請私訊 <a id="fbLink" target="_blank" rel="noopener">Yale Home Taiwan 臉書粉專</a>，我們將由專人為你處理。</div>
@@ -356,6 +356,10 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   // 後端
   let api = null;
 
+  // 在 LINE 內建瀏覽器裡，加上 openExternalBrowser=1 讓 LINE 改用 Safari／Chrome 開啟（LINE 本身無法加入行事曆）
+  const ext = u => { const abs = new URL(u, location.href).href;
+    return /\bLine\//i.test(navigator.userAgent) ? abs + (abs.includes("?") ? "&" : "?") + "openExternalBrowser=1" : abs; };
+
   // 行事曆連結（Google 日曆網址＋網站上的 .ics 檔）
   function calHrefs(sid, no){
     const s = SLOTS.find(x => x.id === sid); if (!s) return null;
@@ -364,9 +368,9 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
     const title = "Yale 城市解鎖計畫｜Luna Elite+ 新品體驗（" + no + "）";
     const loc = EV.place + (EV.address ? " " + EV.address : "");
     const desc = "預約編號：" + no + "\n時段：" + s.label + "\n請於預約時段抵達現場，向工作人員出示預約編號。" + (EV.mapUrl ? "\n導航：" + EV.mapUrl : "");
-    return { google: "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title)
-      + "&dates=" + z(st) + "/" + z(en) + "&details=" + encodeURIComponent(desc) + "&location=" + encodeURIComponent(loc),
-      apple: "../cal/" + s.id + ".ics" };
+    return { google: ext("https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title)
+      + "&dates=" + z(st) + "/" + z(en) + "&details=" + encodeURIComponent(desc) + "&location=" + encodeURIComponent(loc)),
+      apple: ext("../cal/" + s.id + ".ics") };
   }
 
   // 查詢我的預約（輸入手機號碼 → 顯示預約編號與時段）
@@ -489,21 +493,8 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
       $("dSlot").textContent = slotLabel(data.slotId);
       $("dParty").textContent = data.partySize + " 人";
       $("dPlace").innerHTML = placeHTML();
-      // 加入行事曆（取代確認信）
-      (() => {
-        const s = SLOTS.find(x => x.id === data.slotId);
-        const st = new Date("2026-11-14T" + s.start + ":00+08:00"), en = new Date(st.getTime() + 15 * 60000);
-        const z = d => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-        const title = "Yale 城市解鎖計畫｜Luna Elite+ 新品體驗（" + res.bookingNo + "）";
-        const loc = EV.place + (EV.address ? " " + EV.address : "");
-        const desc = "預約編號：" + res.bookingNo + "\n時段：" + s.label + "\n人數：" + data.partySize + " 人\n請於預約時段抵達現場，向工作人員出示預約編號。" + (EV.mapUrl ? "\n導航：" + EV.mapUrl : "");
-        $("calGoogle").href = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title)
-          + "&dates=" + z(st) + "/" + z(en) + "&details=" + encodeURIComponent(desc) + "&location=" + encodeURIComponent(loc);
-        // iPhone／Outlook：開啟網站上的行事曆檔（比下載檔案相容性好，LINE 內建瀏覽器也較能開啟）
-        const a = $("calApple");
-        a.href = "../cal/" + s.id + ".ics";
-        a.removeAttribute("download");
-      })();
+      // 加入行事曆
+      { const c = calHrefs(data.slotId, res.bookingNo); $("calGoogle").href = c.google; $("calApple").href = c.apple; }
       $("formView").classList.add("hidden");
       $("done").style.display = "block";
       window.scrollTo({ top: 0, behavior: "smooth" });
