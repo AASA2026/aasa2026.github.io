@@ -1,61 +1,38 @@
-// =====================================================
-//  問卷設定檔：之後改品項、改顏色、換展覽，只改這個檔案
-// =====================================================
-window.SURVEY_CONFIG = {
+// ============================================================
+//  Yale 城市解鎖計畫｜預約表單設定檔
+//  只需要改這個檔案，其他檔案不用動。
+// ============================================================
 
-  // 1) Firebase 專案設定（Firebase 主控台 → 專案設定 → 您的應用程式 → 複製貼上）
-  firebase: {
-    apiKey: "AIzaSyA71zte7og-qVJGLL4MVQLnw2PC0_nEWGQ",
-    authDomain: "aa2026-booth.firebaseapp.com",
-    databaseURL: "https://aa2026-booth-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "aa2026-booth",
-    appId: "1:669741381631:web:229446301f0fee08e159ca"
-  },
+// 1) Firebase 設定：到 Firebase 主控台 → 專案設定 → 一般 → 您的應用程式 → 複製 firebaseConfig 貼上
+//    還沒貼上時，表單會以「展示模式」運作（資料不會真的送出，方便先給主管看畫面）
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA71zte7og-qVJGLL4MVQLnw2PC0_nEWGQ",
+  authDomain: "aa2026-booth.firebaseapp.com",
+  projectId: "aa2026-booth",
+  storageBucket: "aa2026-booth.firebasestorage.app",
+  messagingSenderId: "669741381631",
+  appId: "1:669741381631:web:229446301f0fee08e159ca"
+};
 
-  // 2) 個資告知事項中的公司名稱（請確認為公司登記全名）
-  companyName: "台灣亞薩合萊股份有限公司",
+// 2) EmailJS 設定（寄預約確認信用）：到 https://dashboard.emailjs.com 取得三個值貼上
+//    publicKey：Account → General → Public Key
+//    serviceId：Email Services 裡那個服務的 Service ID
+//    templateId：Email Templates 裡那個範本的 Template ID
+window.EMAILJS = {
+  publicKey: "dFt8KcGq8EBRcAIkV",
+  serviceId: "service_1trhipt",
+  templateId: "template_1mda6mk"
+};
 
-  // 3) 活動名稱：會一起存進每筆資料，之後其他展覽沿用時改這裡即可
-  eventName: "2026台北建材展",
-
-  // 4) 身分選項（選填、單選）
-  roles: ["建築師", "室內設計師", "營造廠", "經銷商", "業主", "個人"],
-
-  // 5) 品牌與產品清單
-  //    網址 ?b=biz / ?b=yale / ?b=kwikset 對應下面三組
-  //    產品 id 請用英文小寫（建立後不要再改，否則舊資料會對不上）
-  //    id 為 "other" 的項目，勾選後會出現補充說明欄
-  brands: {
-    biz: {
-      name: "ASSA ABLOY 商用產品",
-      color: "#0B4EA2",
-      textOnColor: "#FFFFFF",
-      products: [
-        { id: "auto_door",   label: "自動門" },
-        { id: "speed_gate",  label: "通關機" },
-        { id: "door_hw",     label: "門鎖五金" },
-        { id: "face_id",     label: "臉部辨識" },
-        { id: "key_cabinet", label: "鑰匙櫃" },
-        { id: "other",       label: "其它" }
-      ]
-    },
-    yale: {
-      name: "Yale 耶魯",
-      color: "#FFD100",
-      textOnColor: "#1A1A1A",
-      products: [
-        // TODO：待 Kay 提供品項
-        { id: "other", label: "其它" }
-      ]
-    },
-    kwikset: {
-      name: "Kwikset 凱特安",
-      color: "#1F2A44",
-      textOnColor: "#FFFFFF",
-      products: [
-        // TODO：待 Kay 提供品項
-        { id: "other", label: "其它" }
-      ]
-    }
-  }
+// 3) 活動資訊（顯示在表單與確認信上）
+//    ⚠ 改截止時間時，Firestore 規則裡的截止時間也要一起改
+window.EVENT = {
+  dateLabel: "2026/11/14（六）",
+  timeLabel: "12:30 – 16:30",
+  place: "MONCEAU FLEURS 中山花町",
+  address: "臺北市大同區南京西路25巷4-1號",
+  deadlineISO: "2026-11-13T17:00:00+08:00", // 預約截止：11/13（五）17:00
+  deadlineLabel: "11 月 13 日（五）17:00",
+  mapUrl: "https://maps.app.goo.gl/1sMsmq3bQEpvcRbN7", // Google Maps 導航連結
+  facebookUrl: "https://www.facebook.com/YaleHomeTaiwan"
 };
