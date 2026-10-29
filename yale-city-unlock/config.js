@@ -20,7 +20,7 @@ window.FIREBASE_CONFIG = {
 //    templateId：Email Templates 裡那個範本的 Template ID
 window.EMAILJS = {
   publicKey: "dFt8KcGq8EBRcAIkV",
-  serviceId: "service_1trhipt",
+  serviceId: "service_g2vzsds",
   templateId: "template_1mda6mk"
 };
 
