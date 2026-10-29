@@ -29,6 +29,16 @@ p{margin:0 0 10px}
 p,.task>div,.fact>span,.tip,.notice,.muted,.summary,.check span,dd,.addr{text-align:justify;text-justify:inter-character;line-break:strict}
 .done p,.closed p{text-align:center}
 .ticket dt{white-space:nowrap}
+.lk-toggle{display:block;margin:16px auto 0;font:inherit;font-size:15px;color:var(--ink);background:#fff;border:var(--line);border-radius:999px;padding:8px 18px;cursor:pointer}
+.lk-res{margin-top:14px}
+.lk-res .ticket{margin:0}
+.lk-none{background:#fde4df;border:2px solid var(--ink);border-radius:var(--r-sm);padding:10px 14px;font-size:15px;text-align:left}
+
+.cal{border:var(--line);border-radius:var(--r-md);background:#fff3a8;padding:12px 14px;margin-top:12px}
+.cal-t{font-size:15px;margin-bottom:8px}
+.cal-b{display:flex;gap:8px;flex-wrap:wrap}
+.calbtn{flex:1 1 140px;text-align:center;font-size:15px;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:999px;padding:7px 10px;text-decoration:none;cursor:pointer;white-space:nowrap}
+
 .summary{text-align:left !important}
 .tip.left{text-align:left}
 .plc{display:block;text-align:left}
@@ -135,6 +145,17 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   </header>
 
   <main id="formView">
+    <button type="button" class="lk-toggle" id="lkToggle" aria-expanded="false">🔍 已經預約過了？查詢我的預約</button>
+    <section class="card hidden" id="lkPanel">
+      <h2>查詢我的預約</h2>
+      <div class="field" id="lkField" style="margin-bottom:0">
+        <label class="lb" for="lkPhone">預約時填寫的行動電話</label>
+        <input type="tel" id="lkPhone" inputmode="numeric" maxlength="12" placeholder="例：0912345678">
+        <div class="err">請填寫 09 開頭的 10 碼手機號碼</div>
+      </div>
+      <button type="button" class="submit" id="lkBtn" style="margin-top:14px">查詢</button>
+      <div class="lk-res" id="lkResult"></div>
+    </section>
     <!-- 2. 活動介紹 -->
     <section class="card">
       <h2><span class="step">1</span>活動介紹</h2>
@@ -181,7 +202,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         </div>
         <div class="field" id="emailField">
           <label class="lb" for="email">電子郵件（Email）<em>*</em></label>
-          <input type="email" id="email" autocomplete="email" maxlength="100" placeholder="預約確認信會寄到這裡">
+          <input type="email" id="email" autocomplete="email" maxlength="100" placeholder="例：name@example.com">
           <div class="err">請填寫正確的 Email</div>
         </div>
         <div class="field" style="margin-bottom:0">
@@ -218,8 +239,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   <main id="done" class="card done">
     <svg class="done-badge" viewBox="0 0 100 100" aria-hidden="true"><g stroke="#3E3A39" stroke-width="3"><circle cx="50" cy="50" r="44" fill="#B9DAA5"/><rect x="32" y="46" width="36" height="28" rx="6" fill="#FFD800"/><path d="M39 46v-8a11 11 0 0 1 22 0" fill="none" stroke-linecap="round"/><circle cx="50" cy="59" r="4" fill="#3E3A39"/></g></svg>
     <h2>解鎖成功！預約完成</h2>
-    <p style="text-align:center" id="mailOk">確認信已寄到 <b style="font-weight:400" id="dEmail"></b><br><span class="muted">沒收到的話，請看一下垃圾郵件匣</span></p>
-    <p style="text-align:center" id="mailFail" class="hidden">預約已成立！<br>確認信寄送稍有延遲，<br>請先<b style="font-weight:400">截圖保存這個畫面</b><br>作為報到憑證。</p>
+    <p style="text-align:center">請<b style="font-weight:400">截圖保存這個畫面</b>，<br>作為現場報到憑證。</p>
     <div class="ticket">
       <div class="no">預約編號<b id="dNo"></b></div>
       <dl>
@@ -230,14 +250,21 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         <dt>地點</dt><dd id="dPlace"></dd>
       </dl>
     </div>
-    <div class="tip">活動當天請於預約時段抵達現場，向工作人員出示<b style="font-weight:400">預約編號</b>或<b style="font-weight:400">確認信</b>即可報到。<br>建議先截圖這個畫面保存。</div>
+    <div class="cal">
+      <div class="cal-t">📅 加入行事曆，活動前手機會提醒你</div>
+      <div class="cal-b">
+        <a id="calApple" class="calbtn">iPhone／Outlook 行事曆</a>
+        <a id="calGoogle" class="calbtn" target="_blank" rel="noopener">Google 日曆</a>
+      </div>
+    </div>
+    <div class="tip">活動當天請於預約時段抵達現場，向工作人員出示<b style="font-weight:400">預約編號</b>即可報到。<br>建議先截圖這個畫面保存。</div>
     <div class="tip left" style="background:#fde4df">如需取消預約，請私訊 <a id="fbLink" target="_blank" rel="noopener">Yale Home Taiwan 臉書粉專</a>，我們將由專人為你處理。</div>
   </main>
 
   <footer>© Yale｜Yale 電子鎖 城市解鎖計畫</footer>
 </div>
 
-<script src="config.js?v=1028c"></script>
+<script src="config.js?v=1029a"></script>
 <script>
 (function(){
   const EV = window.EVENT;
@@ -328,6 +355,35 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
 
   // 後端
   let api = null;
+
+  // 查詢我的預約（輸入手機號碼 → 顯示預約編號與時段）
+  let lookupFn = null;
+  $("lkToggle").onclick = () => {
+    const open = $("lkPanel").classList.toggle("hidden") === false;
+    $("lkToggle").setAttribute("aria-expanded", open);
+    if (open) { $("lkPanel").scrollIntoView({ behavior: "smooth", block: "start" }); $("lkPhone").focus(); }
+  };
+  $("lkPhone").addEventListener("keydown", e => { if (e.key === "Enter") $("lkBtn").click(); });
+  $("lkBtn").onclick = async () => {
+    const ph = $("lkPhone").value.replace(/[\s-]/g, "");
+    const ok = /^09\d{8}$/.test(ph);
+    $("lkField").classList.toggle("bad", !ok);
+    if (!ok || !lookupFn) return;
+    const btn = $("lkBtn"); btn.disabled = true; btn.textContent = "查詢中…";
+    try {
+      const r = await lookupFn(ph);
+      $("lkResult").innerHTML = r
+        ? '<div class="ticket"><div class="no">預約編號<b>' + String(r.bookingNo).replace(/[<&]/g, "") + '</b></div><dl>'
+          + '<dt>日期</dt><dd>' + dateHTML() + '</dd>'
+          + (r.slotLabel ? '<dt>時段</dt><dd>' + String(r.slotLabel).replace(/[<&]/g, "") + '</dd>' : '')
+          + '<dt>地點</dt><dd>' + placeHTML() + '</dd></dl></div>'
+          + '<p class="muted" style="margin-top:10px">活動當天向工作人員出示預約編號即可報到。如需取消預約，請私訊 <a href="' + EV.facebookUrl + '" target="_blank" rel="noopener" style="color:inherit">Yale Home Taiwan 臉書粉專</a>。</p>'
+        : '<div class="lk-none">查無這支手機號碼的預約紀錄。<br>請確認號碼是否正確，或預約是否已取消。</div>';
+    } catch (e) {
+      console.error(e);
+      $("lkResult").innerHTML = '<div class="lk-none">查詢失敗，請檢查網路後再試一次。</div>';
+    } finally { btn.disabled = false; btn.textContent = "查詢"; }
+  };
   async function initFirebase(){
     const V = "10.12.2";
     const [{ initializeApp }, fs] = await Promise.all([
@@ -341,6 +397,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
     });
 
     // 預約：用交易一次寫入「名額 +1、預約編號 +1、手機登記、預約資料」，資料庫規則會再把關一次
+    lookupFn = async phone => { const d = await fs.getDoc(fs.doc(db, "cityunlock_phones", phone)); return d.exists() ? d.data() : null; };
     api = async data => {
       const slot = SLOTS.find(s => s.id === data.slotId);
       const counterRef = fs.doc(db, "cityunlock_meta", "counter");
@@ -358,7 +415,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
           const no = "YL" + String(seq).padStart(3, "0");
           tx.set(counterRef, { seq, lastBookingNo: no });
           tx.set(slotRef, { count: used + 1, label: slot.label, lastBookingNo: no });
-          tx.set(phoneRef, { bookingNo: no });
+          tx.set(phoneRef, { bookingNo: no, slotLabel: slot.label });
           tx.set(fs.doc(db, "cityunlock_bookings", no), {
             bookingNo: no, name: data.name, phone: data.phone, email: data.email,
             slotId: slot.id, slotLabel: slot.label, slotOrder: SLOTS.indexOf(slot),
@@ -373,35 +430,18 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         throw e;
       }
 
-      // 寄確認信（EmailJS）；寄信失敗不影響預約成立
-      let emailSent = false;
-      const ej = window.EMAILJS || {};
-      try {
-        if (!ej.publicKey || ej.publicKey === "請貼上") throw new Error("EmailJS 尚未設定");
-        if (!window.emailjs) await new Promise((ok, bad) => {
-          const sc = document.createElement("script");
-          sc.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js";
-          sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc);
-        });
-        await window.emailjs.send(ej.serviceId, ej.templateId, {
-          to_email: data.email, to_name: data.name, booking_no: bookingNo,
-          event_date: EV.dateLabel, slot: slot.label, party_size: data.partySize + " 人",
-          place: EV.place + (EV.address ? "（" + EV.address + "）" : ""), facebook_url: EV.facebookUrl, map_url: EV.mapUrl || ""
-        }, { publicKey: ej.publicKey });
-        emailSent = true;
-      } catch (err) { console.error("mail failed", err); }
-      try { await fs.updateDoc(fs.doc(db, "cityunlock_bookings", bookingNo), { emailStatus: emailSent ? "sent" : "failed" }); } catch (_) {}
-      return { bookingNo, emailSent };
+      return { bookingNo };
     };
   }
   function initDemo(){
+    lookupFn = async phone => { await new Promise(r => setTimeout(r, 400)); return phone === "0912345678" ? { bookingNo: "YL003", slotLabel: "13:00–13:15" } : null; };
     counts = { "1230": 2, "1245": 2, "1300": 1, "1400": 2, "1430": 1, "1545": 1 };
     renderSlots();
     api = async data => {
       await new Promise(r => setTimeout(r, 700));
       if ((counts[data.slotId] || 0) >= CAP) throw { code: "functions/resource-exhausted", message: "這個時段剛剛額滿了，請改選其他時段" };
       counts[data.slotId] = (counts[data.slotId] || 0) + 1; renderSlots();
-      return { bookingNo: "YL" + String(Math.floor(Math.random()*32)+1).padStart(3,"0"), emailSent: true };
+      return { bookingNo: "YL" + String(Math.floor(Math.random()*32)+1).padStart(3,"0") };
     };
   }
   renderSlots();
@@ -434,9 +474,27 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
       $("dSlot").textContent = slotLabel(data.slotId);
       $("dParty").textContent = data.partySize + " 人";
       $("dPlace").innerHTML = placeHTML();
-      $("dEmail").textContent = data.email;
-      $("mailOk").classList.toggle("hidden", res.emailSent === false);
-      $("mailFail").classList.toggle("hidden", res.emailSent !== false);
+      // 加入行事曆（取代確認信）
+      (() => {
+        const s = SLOTS.find(x => x.id === data.slotId);
+        const st = new Date("2026-11-14T" + s.start + ":00+08:00"), en = new Date(st.getTime() + 15 * 60000);
+        const z = d => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+        const title = "Yale 城市解鎖計畫｜Luna Elite+ 新品體驗（" + res.bookingNo + "）";
+        const loc = EV.place + (EV.address ? " " + EV.address : "");
+        const desc = "預約編號：" + res.bookingNo + "\n時段：" + s.label + "\n人數：" + data.partySize + " 人\n請於預約時段抵達現場，向工作人員出示預約編號。" + (EV.mapUrl ? "\n導航：" + EV.mapUrl : "");
+        $("calGoogle").href = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title)
+          + "&dates=" + z(st) + "/" + z(en) + "&details=" + encodeURIComponent(desc) + "&location=" + encodeURIComponent(loc);
+        const esc = t => String(t).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+        const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Yale City Unlock//TW","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",
+          "UID:" + res.bookingNo + "-cityunlock@aasa2026.github.io","DTSTAMP:" + z(new Date()),"DTSTART:" + z(st),"DTEND:" + z(en),
+          "SUMMARY:" + esc(title),"LOCATION:" + esc(loc),"DESCRIPTION:" + esc(desc),
+          "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + esc(title),"TRIGGER:-P1D","END:VALARM",
+          "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + esc(title),"TRIGGER:-PT1H","END:VALARM",
+          "END:VEVENT","END:VCALENDAR"].join("\r\n");
+        const a = $("calApple");
+        a.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+        a.download = "Yale城市解鎖_" + res.bookingNo + ".ics";
+      })();
       $("formView").classList.add("hidden");
       $("done").style.display = "block";
       window.scrollTo({ top: 0, behavior: "smooth" });

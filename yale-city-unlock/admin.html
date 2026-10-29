@@ -74,7 +74,7 @@ tr.cancelled td.act{text-decoration:none}
         <div class="stat s1"><div class="k">已預約組數</div><div class="v"><span id="stGroups">0</span> / 32</div></div>
         <div class="stat s2"><div class="k">預計到場人數</div><div class="v" id="stPeople">0</div></div>
         <div class="stat s3"><div class="k">剩餘名額</div><div class="v" id="stLeft">32</div></div>
-        <div class="stat s4"><div class="k">確認信寄送失敗</div><div class="v" id="stFail">0</div></div>
+        <div class="stat" style="background:#fff"><div class="k">已到場（組）</div><div class="v"><span id="stIn">0</span> / <span id="stInAll">0</span></div></div>
         <div class="stat" style="background:#fff"><div class="k">線上／現場</div><div class="v"><span id="stOnline">0</span> / <span id="stOnsite">0</span></div></div>
       </div>
       <div style="margin:16px 0 6px;color:#6f6967;font-size:13px">各時段預約狀況（組數／2）</div>
@@ -86,23 +86,24 @@ tr.cancelled td.act{text-decoration:none}
         <input type="search" id="q" placeholder="搜尋姓名、編號、電話末三碼">
         <label><input type="checkbox" id="showFull">顯示完整電話</label>
         <label><input type="checkbox" id="showCancelled">顯示已取消</label>
+        <label><input type="checkbox" id="onlyPending">只看未報到</label>
         <select id="srcFilter" style="font:inherit;border:3px solid var(--ink);border-radius:999px;padding:5px 12px;background:#fff"><option value="">全部來源</option><option value="online">只看線上</option><option value="onsite">只看現場</option></select>
         <span style="flex:1"></span>
         <button class="btn y" id="exportBtn">匯出 Excel（現場核對用）</button>
       </div>
       <div class="tablebox">
         <table>
-          <thead><tr><th>時段</th><th>預約編號</th><th>姓名</th><th>電話</th><th>人數</th><th>來源</th><th>Email</th><th>確認信</th><th>預約時間</th><th></th></tr></thead>
+          <thead><tr><th>時段</th><th>預約編號</th><th>姓名</th><th>電話</th><th>人數</th><th>來源</th><th>Email</th><th>預約時間</th><th>報到</th><th></th></tr></thead>
           <tbody id="rows"></tbody>
         </table>
       </div>
-      <div style="font-size:13px;color:#6f6967;margin-top:10px">匯出的 Excel 電話只顯示末三碼，依時段排序，並附「報到」空白欄可列印勾選。取消預約後名額會自動釋出。</div>
+      <div style="font-size:13px;color:#6f6967;margin-top:10px">當天客人到場時按「報到」即可標記（再按一次可取消）。匯出的 Excel 電話只顯示末三碼，依時段排序，並附報到時間。取消預約後名額會自動釋出。</div>
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="config.js?v=1028c"></script>
+<script src="config.js?v=1029a"></script>
 <script>
 (function(){
   const cfg = window.FIREBASE_CONFIG || {};
@@ -117,9 +118,11 @@ tr.cancelled td.act{text-decoration:none}
   const fmtPhone = p => p && p.length === 10 ? p.slice(0,4)+"-"+p.slice(4,7)+"-"+p.slice(7) : p;
   const fmtTime = t => { if (!t) return ""; const d = t.toDate ? t.toDate() : new Date(t);
     return d.toLocaleString("zh-TW",{ timeZone:"Asia/Taipei", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hour12:false }); };
+  const fmtHM = t => { if (!t) return ""; const d = t.toDate ? t.toDate() : new Date(t);
+    return d.toLocaleTimeString("zh-TW",{ timeZone:"Asia/Taipei", hour:"2-digit", minute:"2-digit", hour12:false }); };
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-  let bookings = [], cancelFn = null;
+  let bookings = [], cancelFn = null, checkinFn = null;
 
   const srcOf = b => b.source === "onsite" ? "onsite" : "online";
   const srcTag = b => srcOf(b) === "onsite" ? '<span class="tag" style="background:#A8D3E6">現場</span>' : '<span class="tag" style="background:#E4DEF4">線上</span>';
@@ -129,26 +132,36 @@ tr.cancelled td.act{text-decoration:none}
     $("stGroups").textContent = active.length;
     $("stPeople").textContent = active.reduce((n,b) => n + (b.partySize||0), 0);
     $("stLeft").textContent = 32 - active.length;
-    $("stFail").textContent = active.filter(b => b.emailStatus === "failed").length;
+    $("stIn").textContent = active.filter(b => b.checkedIn).length;
+    $("stInAll").textContent = active.length;
     $("stOnline").textContent = active.filter(b => srcOf(b) === "online").length;
     $("stOnsite").textContent = active.filter(b => srcOf(b) === "onsite").length;
     $("slotbar").innerHTML = SLOTS.map(s => { const n = active.filter(b => b.slotId === s.id).length;
       return `<div class="sb ${n>=2?"full":n===1?"half":""}"><b>${s.start}</b>${n} / 2</div>`; }).join("");
 
     const q = $("q").value.trim().toLowerCase(), full = $("showFull").checked, showC = $("showCancelled").checked;
-    const sf = $("srcFilter").value;
-    const list = sorted(bookings).filter(b => (showC || b.status !== "cancelled") && (!sf || srcOf(b) === sf) &&
+    const sf = $("srcFilter").value, onlyP = $("onlyPending").checked;
+    const list = sorted(bookings).filter(b => (showC || b.status !== "cancelled") && (!sf || srcOf(b) === sf) && (!onlyP || (!b.checkedIn && b.status !== "cancelled")) &&
       (!q || [b.name, b.bookingNo, (b.phone||"").slice(-3), b.email].some(x => String(x||"").toLowerCase().includes(q))));
     const mailTag = b => b.emailStatus === "sent" ? '<span class="tag ok">已寄出</span>' : b.emailStatus === "failed" ? `<span class="tag fail" title="${esc(b.emailError)}">失敗</span>` : '<span class="tag pending">處理中</span>';
     $("rows").innerHTML = list.length ? list.map(b => `<tr class="${b.status==="cancelled"?"cancelled":""}">
       <td>${esc(b.slotLabel)}</td><td>${esc(b.bookingNo)}</td><td>${esc(b.name)}</td>
       <td>${esc(full ? fmtPhone(b.phone) : mask(b.phone))}</td><td>${b.partySize} 人</td><td>${srcTag(b)}</td><td>${esc(b.email)}</td>
-      <td>${mailTag(b)}</td><td>${fmtTime(b.createdAt)}</td>
+      <td>${fmtTime(b.createdAt)}</td>
+      <td>${b.status==="cancelled" ? "" : b.checkedIn ? `<button class="mini" style="background:#B9DAA5" data-in="${esc(b.bookingNo)}" title="再按一次可取消報到">✓ 已到場 ${fmtHM(b.checkedInAt)}</button>` : `<button class="mini" style="background:#FFD800" data-in="${esc(b.bookingNo)}">報到</button>`}</td>
       <td class="act">${b.status==="cancelled" ? '<span class="tag">已取消</span>' : `<button class="mini" data-cancel="${esc(b.bookingNo)}">取消預約</button>`}</td></tr>`).join("")
       : '<tr><td colspan="10" class="empty">目前沒有預約資料</td></tr>';
     document.querySelectorAll("[data-cancel]").forEach(btn => btn.onclick = () => doCancel(btn.dataset.cancel, btn));
+    document.querySelectorAll("[data-in]").forEach(btn => btn.onclick = () => doCheckin(btn.dataset.in, btn));
   }
-  ["q","showFull","showCancelled","srcFilter"].forEach(id => $(id).addEventListener("input", render));
+  ["q","showFull","showCancelled","srcFilter","onlyPending"].forEach(id => $(id).addEventListener("input", render));
+
+  async function doCheckin(no, btn){
+    const b = bookings.find(x => x.bookingNo === no);
+    if (b.checkedIn && !window.confirm(`要取消 ${no}（${b.name}）的報到紀錄嗎？`)) return;
+    btn.disabled = true;
+    try { await checkinFn(no, !b.checkedIn); } catch(e){ alert("報到失敗：" + (e.message||e)); btn.disabled = false; }
+  }
 
   async function doCancel(no, btn){
     const b = bookings.find(x => x.bookingNo === no);
@@ -160,10 +173,10 @@ tr.cancelled td.act{text-decoration:none}
   $("exportBtn").onclick = () => {
     const rows = sorted(bookings.filter(b => b.status !== "cancelled")).map(b => ({
       "時段": b.slotLabel, "預約編號": b.bookingNo, "姓名": b.name, "電話（末三碼）": mask(b.phone),
-      "人數": b.partySize, "來源": srcOf(b) === "onsite" ? "現場" : "線上", "預約時間": fmtTime(b.createdAt), "報到": ""
+      "人數": b.partySize, "來源": srcOf(b) === "onsite" ? "現場" : "線上", "預約時間": fmtTime(b.createdAt), "報到": b.checkedIn ? "✓ " + fmtHM(b.checkedInAt) : ""
     }));
     const ws = XLSX.utils.json_to_sheet(rows, { header: ["時段","預約編號","姓名","電話（末三碼）","人數","來源","預約時間","報到"] });
-    ws["!cols"] = [{wch:14},{wch:10},{wch:14},{wch:14},{wch:6},{wch:6},{wch:14},{wch:8}];
+    ws["!cols"] = [{wch:14},{wch:10},{wch:14},{wch:14},{wch:6},{wch:6},{wch:14},{wch:10}];
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "預約名單");
     const d = new Date(), stamp = d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"_"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0");
     XLSX.writeFile(wb, `Yale城市解鎖計畫_預約名單_${stamp}.xlsx`);
@@ -185,6 +198,7 @@ tr.cancelled td.act{text-decoration:none}
         slotId:sid, slotLabel:s.label, source: i%4===3 ? "onsite" : undefined, slotOrder:SLOTS.indexOf(s), partySize:(i%3===0?1:2), status:"booked",
         emailStatus: i===6 ? "failed" : "sent", emailError:"範例", createdAt:new Date(Date.UTC(2026,10,3+i%9,3+i,10*i%60)), createdAtMs:i }; });
     cancelFn = async no => { const b = bookings.find(x => x.bookingNo === no); b.status = "cancelled"; render(); };
+    checkinFn = async (no, on) => { const b = bookings.find(x => x.bookingNo === no); b.checkedIn = on; b.checkedInAt = on ? new Date() : null; render(); };
     showMain("demo@yale.com"); render();
     return;
   }
@@ -207,6 +221,10 @@ tr.cancelled td.act{text-decoration:none}
       batch.delete(fs.doc(db, "cityunlock_phones", b.phone));
       await batch.commit();
     };
+    // 報到／取消報到
+    checkinFn = (no, on) => fs.updateDoc(fs.doc(db, "cityunlock_bookings", no),
+      on ? { checkedIn: true, checkedInAt: fs.serverTimestamp(), checkedInBy: auth.currentUser.email }
+         : { checkedIn: false, checkedInAt: null, checkedInBy: null });
     let unsub = null;
 
     $("loginBtn").onclick = async () => {
