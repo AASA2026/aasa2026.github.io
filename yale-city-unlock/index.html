@@ -256,6 +256,7 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         <a id="calApple" class="calbtn">iPhone／Outlook 行事曆</a>
         <a id="calGoogle" class="calbtn" target="_blank" rel="noopener">Google 日曆</a>
       </div>
+      <div class="muted" style="font-size:13px;margin-top:8px">在 LINE 或 Facebook 裡按了沒反應的話，請先截圖保存本頁，再點右上角選單「用瀏覽器開啟」後，按「查詢我的預約」即可加入。</div>
     </div>
     <div class="tip">活動當天請於預約時段抵達現場，向工作人員出示<b style="font-weight:400">預約編號</b>即可報到。<br>建議先截圖這個畫面保存。</div>
     <div class="tip left" style="background:#fde4df">如需取消預約，請私訊 <a id="fbLink" target="_blank" rel="noopener">Yale Home Taiwan 臉書粉專</a>，我們將由專人為你處理。</div>
@@ -356,6 +357,19 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
   // 後端
   let api = null;
 
+  // 行事曆連結（Google 日曆網址＋網站上的 .ics 檔）
+  function calHrefs(sid, no){
+    const s = SLOTS.find(x => x.id === sid); if (!s) return null;
+    const st = new Date("2026-11-14T" + s.start + ":00+08:00"), en = new Date(st.getTime() + 15 * 60000);
+    const z = d => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    const title = "Yale 城市解鎖計畫｜Luna Elite+ 新品體驗（" + no + "）";
+    const loc = EV.place + (EV.address ? " " + EV.address : "");
+    const desc = "預約編號：" + no + "\n時段：" + s.label + "\n請於預約時段抵達現場，向工作人員出示預約編號。" + (EV.mapUrl ? "\n導航：" + EV.mapUrl : "");
+    return { google: "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title)
+      + "&dates=" + z(st) + "/" + z(en) + "&details=" + encodeURIComponent(desc) + "&location=" + encodeURIComponent(loc),
+      apple: "cal/" + s.id + ".ics" };
+  }
+
   // 查詢我的預約（輸入手機號碼 → 顯示預約編號與時段）
   let lookupFn = null;
   $("lkToggle").onclick = () => {
@@ -377,6 +391,8 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
           + '<dt>日期</dt><dd>' + dateHTML() + '</dd>'
           + (r.slotLabel ? '<dt>時段</dt><dd>' + String(r.slotLabel).replace(/[<&]/g, "") + '</dd>' : '')
           + '<dt>地點</dt><dd>' + placeHTML() + '</dd></dl></div>'
+          + (() => { const c = r.slotLabel && calHrefs(r.slotLabel.slice(0, 5).replace(":", ""), r.bookingNo); return c
+              ? '<div class="cal"><div class="cal-t">📅 加入行事曆</div><div class="cal-b"><a class="calbtn" href="' + c.apple + '">iPhone／Outlook 行事曆</a><a class="calbtn" target="_blank" rel="noopener" href="' + c.google + '">Google 日曆</a></div></div>' : ""; })()
           + '<p class="muted" style="margin-top:10px">活動當天向工作人員出示預約編號即可報到。如需取消預約，請私訊 <a href="' + EV.facebookUrl + '" target="_blank" rel="noopener" style="color:inherit">Yale Home Taiwan 臉書粉專</a>。</p>'
         : '<div class="lk-none">查無這支手機號碼的預約紀錄。<br>請確認號碼是否正確，或預約是否已取消。</div>';
     } catch (e) {
@@ -484,16 +500,10 @@ footer{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:28px}
         const desc = "預約編號：" + res.bookingNo + "\n時段：" + s.label + "\n人數：" + data.partySize + " 人\n請於預約時段抵達現場，向工作人員出示預約編號。" + (EV.mapUrl ? "\n導航：" + EV.mapUrl : "");
         $("calGoogle").href = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title)
           + "&dates=" + z(st) + "/" + z(en) + "&details=" + encodeURIComponent(desc) + "&location=" + encodeURIComponent(loc);
-        const esc = t => String(t).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
-        const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Yale City Unlock//TW","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",
-          "UID:" + res.bookingNo + "-cityunlock@aasa2026.github.io","DTSTAMP:" + z(new Date()),"DTSTART:" + z(st),"DTEND:" + z(en),
-          "SUMMARY:" + esc(title),"LOCATION:" + esc(loc),"DESCRIPTION:" + esc(desc),
-          "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + esc(title),"TRIGGER:-P1D","END:VALARM",
-          "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + esc(title),"TRIGGER:-PT1H","END:VALARM",
-          "END:VEVENT","END:VCALENDAR"].join("\r\n");
+        // iPhone／Outlook：開啟網站上的行事曆檔（比下載檔案相容性好，LINE 內建瀏覽器也較能開啟）
         const a = $("calApple");
-        a.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
-        a.download = "Yale城市解鎖_" + res.bookingNo + ".ics";
+        a.href = "cal/" + s.id + ".ics";
+        a.removeAttribute("download");
       })();
       $("formView").classList.add("hidden");
       $("done").style.display = "block";
