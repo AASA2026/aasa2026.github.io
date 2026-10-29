@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Yale City Unlock//TW
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:cityunlock-1300@aasa2026.github.io
+DTSTAMP:20261029T000000Z
+DTSTART:20261114T050000Z
+DTEND:20261114T051500Z
+SUMMARY:Yale 城市解鎖計畫｜Luna Elite+ 新品體驗
+LOCATION:MONCEAU FLEURS 中山花町 臺北市大同區南京西路25巷4
+ -1號
+DESCRIPTION:時段：13:00–13:15\n請於預約時段抵達現場，向
+ 工作人員出示預約編號即可報到。\n忘記預約編號：到
+ 預約頁按「查詢我的預約」輸入手機號碼即可查詢。\n
+ 導航：https://maps.app.goo.gl/1sMsmq3bQEpvcRbN7
+URL:https://maps.app.goo.gl/1sMsmq3bQEpvcRbN7
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Yale 城市解鎖計畫｜Luna Elite+ 新品體驗
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Yale 城市解鎖計畫｜Luna Elite+ 新品體驗
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+END:VCALENDAR
